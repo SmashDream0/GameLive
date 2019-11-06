@@ -1,0 +1,77 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <input type="button" id="createWorld" value="Начать игру" class="hidedControl comeInContainer col-sm-12 col-lg-12 m-3" data-bind="css: { visibleControl: !isGameCreated() & isGameEnded() }, click: createWorld" />
+    <div class="fixed col-sm-3 col-lg-3">
+        <div>
+            <input type="button" id="startGame delay05s" value="Пуск" class="hidedControl mt-3" data-bind="css: { comeInFromLeftContainer: !isGameContinued() & isGameCreated(), visibleControl: !isGameContinued() & isGameCreated() }, click: startGame" />
+            <input type="button" id="clearGame delay075s" value="Очистить мир" class="hidedControl mt-3" data-bind="css: { comeInFromLeftContainer: !isGameContinued() & isGameCreated(),visibleControl: !isGameContinued() & isGameCreated() }, click: cleanWorld" />
+        </div>
+        <div>
+            <input type="button" id="stopGame" value="Остановить" class="hidedControl delay05s mt-3" data-bind="css: { comeInFromLeftContainer: isGameContinued() & !isGameEnded(),visibleControl: isGameContinued() & !isGameEnded() }, click: stopGame" />
+            <input type="button" id="continueGame" value="Продолжить" class="hidedControl delay075s mt-3" data-bind="css: { comeInFromLeftContainer: !isGameContinued() & !isGameEnded(),visibleControl: !isGameContinued() & !isGameEnded() }, click: continueGame" />
+        </div>
+    </div>
+    <div id="DynamicTable" data-proportion-h="1" class="worldDivSize fixed mt-3">
+        <table data-bind="css: { fillTable: isGameCreated(), hidedControl: !isGameCreated() }">
+            <tbody data-bind="foreach: { data: rows, as: 'rowItem' }">
+                <tr data-bind="foreach: { data: rowItem.cells, as: 'columnItem' }">
+                    <td class="deadCell" onmousedown="return false" data-bind="css: { liveCell: isAlive }, event: { mouseover: $root.changeCellState(rowItem, columnItem, false) }, click: $root.changeCellState(rowItem, columnItem, true)"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="hidedControl" data-bind="css: { visibleControl: isGameCreated() }">
+            <span>Поколение</span>
+            <span data-bind="text: iterationNumber()"></span>
+            <p><span data-bind="text: stopReasonText()"></span>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script src="~/js/GameViewModel.js"></script>
+    <script src="~/js/SettingsProvider.js"></script>
+    <script type="text/javascript">
+    // экшены
+    var actions = {
+        getGameWorld: '@Url.Action("GetGameWorld", "Game")',
+        getGameState: '@Url.Action("GetGameState", "Game")',
+        stopGame: '@Url.Action("StopGame", "Game")',
+        createGame: '@Url.Action("CreateGame", "Game")',
+        continueGame: '@Url.Action("ContinueGame", "Game")',
+        getSettings: '@Url.Action("GetSettings", "Settings")',
+        login: '@Url.Action("Login", "Account")',
+    };
+
+    var isAthentificated = false;
+
+    AjaxRequest(self.actions.login, {}, false, function (data) { isAthentificated = data.isLogined });
+
+    if (isAthentificated) {
+        var leftMouseButtonOnlyDown = ko.observable();
+
+        function setLeftButtonState(e) {
+            leftMouseButtonOnlyDown((e.buttons === undefined ? e.which === 1 : e.buttons === 1));
+        }
+
+        document.body.onmousedown = setLeftButtonState;
+        document.body.onmousemove = setLeftButtonState;
+        document.body.onmouseup = setLeftButtonState;
+
+        var settings = new settingsProvider(actions);
+        settings.init();
+        var viewModel = new GameViewModel(actions, settings.settings, leftMouseButtonOnlyDown);
+
+        ko.applyBindings(viewModel);
+
+        $(document).ready(function () {
+            viewModel.Init();
+        });
+    }
+    else {
+        throw new Error('Authentification failed')
+    }
+    </script>
+}
