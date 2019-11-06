@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/GameLife.Core.Test/obj
+/GameLife.Core.Test/bin
+/GameLife.Core/obj
+/GameLife.Core/bin
+/GameLive.Web/obj
+/GameLive.Web/bin
+/.vs
